@@ -1,19 +1,22 @@
 package com.github.xingshuangs.rtsp.server.controller;
 
+import com.github.xingshuangs.iot.protocol.rtsp.authentication.DigestAuthenticator;
+import com.github.xingshuangs.iot.protocol.rtsp.authentication.UsernamePasswordCredential;
+import com.github.xingshuangs.iot.protocol.rtsp.enums.ERtspTransportProtocol;
+import com.github.xingshuangs.iot.protocol.rtsp.service.RtspFMp4Proxy;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 〈一句话功能简述〉<br>
+ * WS代理
  *
  * @author xingshuang
  * @ ServerEndpoint 注解是一个类层次的注解，它的功能主要是将目前的类定义成一个websocket服务器端,
@@ -32,14 +35,11 @@ public class WebSocketServer {
     private final Object lockObj = new Object();
 
     /**
-     * 静态变量，用来记录当前在线连接数。应该把它设计成线程安全的
-     */
-    private static int onlineCount = 0;
-
-    /**
      * concurrent包的线程安全Set，用来存放每个客户端对应的MyWebSocket对象。若要实现服务端与单一客户端通信的话，可以使用Map来存放，其中Key可以为用户标识
      */
-    private static ConcurrentHashMap<String, WebSocketServer> webSocketMap = new ConcurrentHashMap<String, WebSocketServer>();
+    private static final ConcurrentHashMap<String, WebSocketServer> WebSocketMap = new ConcurrentHashMap<>();
+
+    private RtspFMp4Proxy rtspFMp4Proxy;
 
     /**
      * 与某个客户端的连接会话，需要通过它来给客户端发送数据
@@ -55,9 +55,8 @@ public class WebSocketServer {
     public void onOpen(Session session) {
         this.session = session;
         //加入map中
-        webSocketMap.put(this.session.getId(), this);
-        addOnlineCount();
-        log.info("有新连接加入！，当前在线人数为{}，sessionId={}", getOnlineCount(), this.session.getId());
+        WebSocketMap.put(this.session.getId(), this);
+        log.info("有新连接加入！，当前在线人数为{}，sessionId={}", WebSocketMap.size(), this.session.getId());
     }
 
     /**
@@ -66,9 +65,12 @@ public class WebSocketServer {
     @OnClose
     public void onClose() {
         //从map中删除
-        webSocketMap.remove(this.session.getId());
-        subOnlineCount();
-        log.info("有一连接关闭！，当前在线人数为{}，sessionId={}", getOnlineCount(), this.session.getId());
+        WebSocketMap.remove(this.session.getId());
+        log.info("有一连接关闭！，当前在线人数为{}，sessionId={}", WebSocketMap.size(), this.session.getId());
+        if (this.rtspFMp4Proxy != null) {
+            this.rtspFMp4Proxy.stop();
+            this.rtspFMp4Proxy = null;
+        }
     }
 
     /**
@@ -79,13 +81,40 @@ public class WebSocketServer {
      */
     @OnMessage
     public void onMessage(byte[] message, Session session) {
-        String msg = new String(message, StandardCharsets.UTF_8);
+        String msg = new String(message, StandardCharsets.US_ASCII);
         log.info("来自客户端的消息:{}，sessionId={}", msg, session.getId());
         try {
             ByteBuffer wrap = ByteBuffer.wrap(message);
             session.getBasicRemote().sendBinary(wrap);
         } catch (IOException e) {
             log.error(e.getMessage());
+        }
+    }
+
+    @OnMessage
+    public void onMessage(String message, Session session) {
+        log.info("来自客户端的消息:{}，sessionId={}", message, session.getId());
+        if ("start".equals(message)) {
+            URI uri = URI.create("rtsp://192.168.3.142:554/h264/ch1/main/av_stream");
+            UsernamePasswordCredential credential = new UsernamePasswordCredential("admin", "kilox1234");
+            DigestAuthenticator authenticator = new DigestAuthenticator(credential);
+            this.rtspFMp4Proxy = new RtspFMp4Proxy(uri, authenticator, ERtspTransportProtocol.TCP, false);
+            this.rtspFMp4Proxy.onFmp4DataHandle(x -> {
+                ByteBuffer wrap = ByteBuffer.wrap(x);
+                try {
+                    session.getBasicRemote().sendBinary(wrap);
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+            });
+            this.rtspFMp4Proxy.onCodecHandle(x -> {
+                try {
+                    session.getBasicRemote().sendText(x);
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+            });
+            this.rtspFMp4Proxy.start();
         }
     }
 
@@ -115,28 +144,5 @@ public class WebSocketServer {
                 log.error(e.getMessage());
             }
         }
-    }
-
-    /**
-     * 获取在线连接数
-     *
-     * @return 连接个数
-     */
-    private static synchronized int getOnlineCount() {
-        return onlineCount;
-    }
-
-    /**
-     * 在线数加1
-     */
-    private static synchronized void addOnlineCount() {
-        WebSocketServer.onlineCount++;
-    }
-
-    /**
-     * 在线数减1
-     */
-    private static synchronized void subOnlineCount() {
-        WebSocketServer.onlineCount--;
     }
 }
