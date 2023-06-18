@@ -19,8 +19,7 @@
     window.onload = () => {
         if (rtsp) rtsp.close()
         const wsUrl = "ws://127.0.0.1:8088/websocket"
-        // const rtspUrl = "rtsp://admin:kilox1234@192.168.3.142:554/h264/ch1/main/av_stream"
-        const rtspUrl = "rtsp://admin:hb123456@192.168.3.251:554/h264/ch1/main/av_stream"
+        const rtspUrl = "rtsp://admin:kilox1234@192.168.3.142:554/h264/ch1/main/av_stream"
         const videoId = "testVideo"
         rtsp = new RtspStream(wsUrl, rtspUrl, videoId)
         rtsp.open()
