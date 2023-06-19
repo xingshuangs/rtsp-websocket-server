@@ -8,7 +8,7 @@
 <body>
 <script type="text/javascript" src="../static/rtspStream.js" th:src="@{../static/rtspStream.js}"></script>
 <h2>RTSP + H264 + FMP4 + WebSocket + WEB</h2>
-<p>采用的通信库: https://github.com/xingshuangs/iot-communication</p>
+<p>采用的通信库: https://github.com/xingshuangs/iot-communication，当前rtsp版本库未发布，对应git分支为rtsp，需要执行拉去源码然后install</p>
 <video id="testVideo" autoplay muted style="height: 80vh; width: 80vw"></video>
 
 <script>
@@ -24,8 +24,6 @@
         rtsp = new RtspStream(wsUrl, rtspUrl, videoId)
         rtsp.open()
     }
-
-
 </script>
 
 </body>
