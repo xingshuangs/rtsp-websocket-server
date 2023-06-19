@@ -47,6 +47,10 @@ class RtspStream {
         this.websocket.close();
     }
 
+    /**
+     * 初始化
+     * @param codecStr 编解码信息
+     */
     init(codecStr) {
         this.codec = 'video/mp4; codecs=\"' + codecStr + '\"';
         console.log("call play:", this.codec);
@@ -56,16 +60,20 @@ class RtspStream {
             this.mediaPlayer = document.getElementById(this.videoId);
             this.mediaPlayer.src = URL.createObjectURL(this.mediaSource);
         } else {
-            console.log("Unsupported MIME type or codec: ", + this.codec);
+            console.log("Unsupported MIME type or codec: ", +this.codec);
         }
     }
 
+    /**
+     * MediaSource已打开事件
+     * @param e 事件
+     */
     onMediaSourceOpen(e) {
         // URL.revokeObjectURL 主动释放引用
         URL.revokeObjectURL(this.mediaPlayer.src);
         this.mediaSource.removeEventListener('sourceopen', this.onMediaSourceOpen.bind(this));
 
-        console.log("MediaSource已打开")
+        // console.log("MediaSource已打开")
         this.sourceBuffer = this.mediaSource.addSourceBuffer(this.codec);
         this.sourceBuffer.addEventListener('about', e => console.log(`about `, e));
         this.sourceBuffer.addEventListener('error', e => console.log(`error `, e));
@@ -73,6 +81,9 @@ class RtspStream {
         this.canFeed = true;
     }
 
+    /**
+     * 喂数据
+     */
     feedNext() {
         if (!this.queue || !this.queue.length) return
 
