@@ -8,21 +8,34 @@
 <body>
 <script type="text/javascript" src="../static/rtspStream.js" th:src="@{../static/rtspStream.js}"></script>
 <h2>RTSP + H264 + FMP4 + WebSocket + WEB</h2>
-<p>采用的通信库: https://github.com/xingshuangs/iot-communication，当前rtsp版本库未发布，对应git分支为rtsp，需要执行拉去源码然后install</p>
-<video id="testVideo" autoplay muted style="height: 80vh; width: 80vw"></video>
+<p>采用的通信库: https://github.com/xingshuangs/iot-communication，下面的依赖是前一版本，当前rtsp版本库未发布，对应git分支为rtsp，需要自行拉取源码然后install<br>
+<div style="margin-bottom: 10px">
+    <span>RTSP的地址：</span>
+    <input type="text" id="rtspUrlInput" name="rtspUrlInput"
+           value="rtsp://admin:kilox1234@192.168.3.142:554/h264/ch1/main/av_stream" style="width: 500px">
+    <button id="openBtn" type="button" onclick="rtspOpen()">打开</button>
+    <button id="closeBtn" type="button" onclick="rtspClose()">关闭</button>
+</div>
+<video id="testVideo" autoplay muted style="height: 70vh; width: 80vw"></video>
 
 <script>
     let rtsp;
-    window.onunload = () => {
+
+    function rtspOpen() {
         if (rtsp) rtsp.close()
-    }
-    window.onload = () => {
-        if (rtsp) rtsp.close()
+
+        // const rtspUrl = "rtsp://admin:hb123456@192.168.3.251:554/h264/ch1/main/av_stream"
+        const rtspUrl = document.getElementById("rtspUrlInput").value;
+        console.log("打开", rtspUrl)
         const wsUrl = "ws://127.0.0.1:8088/websocket"
-        const rtspUrl = "rtsp://admin:kilox1234@192.168.3.142:554/h264/ch1/main/av_stream"
         const videoId = "testVideo"
         rtsp = new RtspStream(wsUrl, rtspUrl, videoId)
         rtsp.open()
+    }
+
+    function rtspClose() {
+        console.log("关闭")
+        if (rtsp) rtsp.close()
     }
 </script>
 

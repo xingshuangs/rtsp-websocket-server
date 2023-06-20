@@ -55,10 +55,7 @@ public class WebSocketServer {
         //从map中删除
         SESSION_MAP.remove(session.getId());
         log.info("有一连接关闭！，当前在线人数为{}，sessionId={}", SESSION_MAP.size(), session.getId());
-        if (this.rtspFMp4Proxy != null) {
-            this.rtspFMp4Proxy.stop();
-            this.rtspFMp4Proxy = null;
-        }
+        this.closeRtspFmp4Proxy();
     }
 
     @OnMessage
@@ -73,15 +70,18 @@ public class WebSocketServer {
             return;
         }
         log.info("来自客户端的消息:{}，sessionId={}", message, session.getId());
-        this.initRtspFmp4Proxy(message, session);
+        this.openRtspFmp4Proxy(message, session);
     }
 
-    private void initRtspFmp4Proxy(String message, Session session) {
+    /**
+     * 打开FMP4代理
+     *
+     * @param message RTSP地址
+     * @param session session
+     */
+    private void openRtspFmp4Proxy(String message, Session session) {
         // 关闭之前的代理
-        if (this.rtspFMp4Proxy != null) {
-            this.rtspFMp4Proxy.stop();
-            this.rtspFMp4Proxy = null;
-        }
+        this.closeRtspFmp4Proxy();
         try {
             URI srcUri = URI.create(message);
             URI uri = URI.create("rtsp://" + srcUri.getHost() + ":" + srcUri.getPort() + srcUri.getPath());
@@ -110,10 +110,17 @@ public class WebSocketServer {
             this.rtspFMp4Proxy.start();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            if (this.rtspFMp4Proxy != null) {
-                this.rtspFMp4Proxy.stop();
-                this.rtspFMp4Proxy = null;
-            }
+            this.closeRtspFmp4Proxy();
+        }
+    }
+
+    /**
+     * 关闭代理
+     */
+    private void closeRtspFmp4Proxy() {
+        if (this.rtspFMp4Proxy != null) {
+            this.rtspFMp4Proxy.stop();
+            this.rtspFMp4Proxy = null;
         }
     }
 
