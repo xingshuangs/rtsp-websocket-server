@@ -21,8 +21,9 @@ class RtspStream {
         if (typeof (evt.data) == "string") {
             this.init(evt.data)
         } else {
-            // console.log(evt.data)
-            this.queue.push(new Uint8Array(evt.data));
+            const data = new Uint8Array(evt.data);
+            // console.log(data)
+            this.queue.push(data);
             if (this.canFeed) {
                 this.feedNext();
             }
@@ -89,6 +90,7 @@ class RtspStream {
 
         if (this.sourceBuffer && !this.sourceBuffer.updating) {
             const data = this.queue.shift();
+            // console.log(data);
             this.sourceBuffer.appendBuffer(data);
         }
     }

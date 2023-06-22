@@ -2,6 +2,7 @@ package com.github.xingshuangs.rtsp.server.controller;
 
 import com.github.xingshuangs.iot.protocol.rtsp.authentication.DigestAuthenticator;
 import com.github.xingshuangs.iot.protocol.rtsp.authentication.UsernamePasswordCredential;
+import com.github.xingshuangs.iot.protocol.rtsp.enums.ERtspTransportProtocol;
 import com.github.xingshuangs.iot.protocol.rtsp.service.RtspClient;
 import com.github.xingshuangs.iot.protocol.rtsp.service.RtspFMp4Proxy;
 import lombok.extern.slf4j.Slf4j;
@@ -90,7 +91,7 @@ public class WebSocketServer {
                 UsernamePasswordCredential credential = UsernamePasswordCredential.createBy(srcUri.getUserInfo());
                 authenticator = new DigestAuthenticator(credential);
             }
-            RtspClient client = new RtspClient(uri, authenticator);
+            RtspClient client = new RtspClient(uri, authenticator, ERtspTransportProtocol.UDP);
             this.rtspFMp4Proxy = new RtspFMp4Proxy(client);
             this.rtspFMp4Proxy.onFmp4DataHandle(x -> {
                 ByteBuffer wrap = ByteBuffer.wrap(x);

@@ -10,6 +10,6 @@
 
 ## 使用指南
 
-登录访问地址：http://127.0.0.1:8088/client
+登录访问地址：http://127.0.0.1:8088
 
-[![rtsp-websocket.png](https://i.postimg.cc/63gMnY7M/rtsp-websocket.png)](https://i.postimg.cc/63gMnY7M/rtsp-websocket.png)
+![rtsp-websocket.png](https://i.postimg.cc/vBZzrGQB/img.png)
