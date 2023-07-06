@@ -6,6 +6,7 @@ class RtspStream {
         this.videoId = videoId;
         this.queue = [];
         this.canFeed = false;
+        this.lastTime = new Date();
     }
 
     onopen(evt) {
@@ -24,9 +25,7 @@ class RtspStream {
             const data = new Uint8Array(evt.data);
             // console.log(data)
             this.queue.push(data);
-            if (this.canFeed) {
-                this.feedNext();
-            }
+            if (this.canFeed) this.feedNext();
         }
     }
 
@@ -35,6 +34,7 @@ class RtspStream {
     }
 
     open() {
+        if (this.websocket) this.websocket.close();
 
         this.websocket = new WebSocket(this.wsUrl);
         this.websocket.binaryType = "arraybuffer";
@@ -42,10 +42,12 @@ class RtspStream {
         this.websocket.onmessage = this.onMessage.bind(this);
         this.websocket.onclose = this.onClose.bind(this);
         this.websocket.onerror = this.onError.bind(this);
+        this.queue = [];
+        this.canFeed = false;
     }
 
     close() {
-        this.websocket.close();
+        if (this.websocket) this.websocket.close();
     }
 
     /**
@@ -78,20 +80,73 @@ class RtspStream {
         this.sourceBuffer = this.mediaSource.addSourceBuffer(this.codec);
         this.sourceBuffer.addEventListener('about', e => console.log(`about `, e));
         this.sourceBuffer.addEventListener('error', e => console.log(`error `, e));
-        this.sourceBuffer.addEventListener('updateend', e => this.feedNext());
+        this.sourceBuffer.addEventListener('updateend', e => {
+            if (this.canFeed) {
+                this.removeBuffer();
+                this.processDelay();
+                this.feedNext();
+            }
+        });
         this.canFeed = true;
     }
 
     /**
      * 喂数据
+     * append的时候遇到The HTMLMediaElement.error attribute is not null就是数据时间戳有问题
      */
     feedNext() {
         if (!this.queue || !this.queue.length) return
+        if (!this.sourceBuffer || this.sourceBuffer.updating) return;
 
-        if (this.sourceBuffer && !this.sourceBuffer.updating) {
-            const data = this.queue.shift();
-            // console.log(data);
-            this.sourceBuffer.appendBuffer(data);
+        const now = new Date();
+        if (now.getTime() - this.lastTime.getTime() > 60 * 1000) {
+            console.log("喂数据进行中", now, this.canFeed, this.queue.length, this.mediaSource.duration);
+            this.lastTime = now;
         }
+
+        this.canFeed = false;
+        try {
+            const data = this.queue.shift();
+            this.sourceBuffer.appendBuffer(data);
+            this.canFeed = true;
+        } catch (e) {
+            console.log(e);
+            this.reset();
+        }
+    }
+
+    /**
+     * 处理延时或画面卡主
+     */
+    processDelay() {
+        if (!this.sourceBuffer || !this.sourceBuffer.buffered.length || this.sourceBuffer.updating) return;
+
+        const end = this.sourceBuffer.buffered.end(this.sourceBuffer.buffered.length - 1);
+        const current = this.mediaPlayer.currentTime;
+        // 解决延迟并防止画面卡主
+        if (Math.abs(end - current) >= 1.8)
+            this.mediaPlayer.currentTime = end - 0.1;
+    }
+
+    /**
+     * 移除缓存
+     */
+    removeBuffer() {
+        if (!this.sourceBuffer || !this.sourceBuffer.buffered.length || this.sourceBuffer.updating) return;
+
+        const start = this.sourceBuffer.buffered.start(0);
+        const end = this.sourceBuffer.buffered.end(this.sourceBuffer.buffered.length - 1);
+        const currentTime = this.mediaPlayer.currentTime;
+        if (currentTime - start > 120 && end > currentTime) {
+            const removeEnd = Math.min(currentTime - 10, end);
+            this.sourceBuffer.remove(start, removeEnd)
+            console.log("触发移除缓存数据", start, removeEnd, currentTime, end);
+        }
+    }
+
+    reset() {
+        this.close();
+        this.open();
+        console.log("触发websocket进行重连");
     }
 }
