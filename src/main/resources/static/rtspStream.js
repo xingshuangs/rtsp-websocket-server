@@ -98,11 +98,11 @@ class RtspStream {
         if (!this.queue || !this.queue.length) return
         if (!this.sourceBuffer || this.sourceBuffer.updating) return;
 
-        const now = new Date();
-        if (now.getTime() - this.lastTime.getTime() > 60 * 1000) {
-            console.log("喂数据进行中", now, this.canFeed, this.queue.length, this.mediaSource.duration);
-            this.lastTime = now;
-        }
+        // const now = new Date();
+        // if (now.getTime() - this.lastTime.getTime() > 120 * 1000) {
+        //     console.log("喂数据进行中", now, this.queue.length, this.sourceBuffer.buffered.end(this.sourceBuffer.buffered.length - 1));
+        //     this.lastTime = now;
+        // }
 
         this.canFeed = false;
         try {
@@ -124,8 +124,10 @@ class RtspStream {
         const end = this.sourceBuffer.buffered.end(this.sourceBuffer.buffered.length - 1);
         const current = this.mediaPlayer.currentTime;
         // 解决延迟并防止画面卡主
-        if (Math.abs(end - current) >= 1.8)
-            this.mediaPlayer.currentTime = end - 0.1;
+        if (Math.abs(end - current) >= 1.8) {
+            this.mediaPlayer.currentTime = end - 0.01;
+            // console.log("画面存在延迟", this.sourceBuffer.buffered.length, current, end);
+        }
     }
 
     /**
@@ -134,13 +136,19 @@ class RtspStream {
     removeBuffer() {
         if (!this.sourceBuffer || !this.sourceBuffer.buffered.length || this.sourceBuffer.updating) return;
 
-        const start = this.sourceBuffer.buffered.start(0);
-        const end = this.sourceBuffer.buffered.end(this.sourceBuffer.buffered.length - 1);
+        const length = this.sourceBuffer.buffered.length;
+        const firstStart = this.sourceBuffer.buffered.start(0);
+        const firstEnd = this.sourceBuffer.buffered.end(0);
+        const lastStart = this.sourceBuffer.buffered.start(this.sourceBuffer.buffered.length - 1);
+        const lastEnd = this.sourceBuffer.buffered.end(this.sourceBuffer.buffered.length - 1);
         const currentTime = this.mediaPlayer.currentTime;
-        if (currentTime - start > 120 && end > currentTime) {
-            const removeEnd = Math.min(currentTime - 10, end);
-            this.sourceBuffer.remove(start, removeEnd)
-            console.log("触发移除缓存数据", start, removeEnd, currentTime, end);
+
+        if (Math.abs(firstStart - lastEnd) > 47000) {
+            this.sourceBuffer.remove(firstEnd + 10, lastEnd);
+            // console.log("时间戳存在溢出", length, firstStart, firstEnd, currentTime, lastStart, lastEnd);
+        } else if (currentTime - firstStart > 120 && lastEnd > currentTime) {
+            this.sourceBuffer.remove(firstStart, lastEnd - 10)
+            // console.log("正常移除缓存数据", length, firstStart, firstEnd, currentTime, lastStart, lastEnd);
         }
     }
 

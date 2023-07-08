@@ -55,8 +55,8 @@ public class WebSocketServer {
     public void onClose(Session session) {
         //从map中删除
         SESSION_MAP.remove(session.getId());
-        log.info("有一连接关闭！，当前在线人数为{}，sessionId={}", SESSION_MAP.size(), session.getId());
         this.closeRtspFmp4Proxy();
+        log.info("有一连接关闭！，当前在线人数为{}，sessionId={}", SESSION_MAP.size(), session.getId());
     }
 
     @OnMessage
@@ -108,10 +108,12 @@ public class WebSocketServer {
                     log.error(e.getMessage(), e);
                 }
             });
+            this.rtspFMp4Proxy.onDestroyHandle(() -> this.closeSession(session));
             this.rtspFMp4Proxy.start();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             this.closeRtspFmp4Proxy();
+            this.closeSession(session);
         }
     }
 
@@ -123,6 +125,23 @@ public class WebSocketServer {
             this.rtspFMp4Proxy.stop();
             this.rtspFMp4Proxy = null;
         }
+    }
+
+    /**
+     * 关闭session
+     *
+     * @param session 会话
+     * @return true
+     */
+    private boolean closeSession(Session session) {
+        if (session.isOpen()) {
+            try {
+                session.close();
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+        return true;
     }
 
     /**
