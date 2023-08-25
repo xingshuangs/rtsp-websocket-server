@@ -1,0 +1,10 @@
+server:
+  port: 8088
+
+spring:
+  mvc:
+    static-path-pattern: /static/**
+
+logging:
+  level:
+    com.github.xingshuangs: debug
