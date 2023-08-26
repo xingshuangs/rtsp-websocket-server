@@ -1,17 +1,20 @@
 class RtspStream {
 
-    constructor(wsUrl, rtspUrl, videoId) {
+    constructor(wsUrl, videoId) {
         this.wsUrl = wsUrl;
-        this.rtspUrl = rtspUrl;
         this.videoId = videoId;
         this.queue = [];
         this.canFeed = false;
         this.lastTime = new Date();
     }
 
+    send(data) {
+        this.websocket.send(data);
+    }
+
     onopen(evt) {
         console.log("ws连接成功")
-        this.websocket.send(this.rtspUrl)
+        // this.websocket.send(this.rtspUrl)
     }
 
     onClose(evt) {
@@ -20,7 +23,8 @@ class RtspStream {
 
     onMessage(evt) {
         if (typeof (evt.data) == "string") {
-            this.init(evt.data)
+            console.log(evt.data);
+            // this.init(evt.data)
         } else {
             const data = new Uint8Array(evt.data);
             // console.log(data)

@@ -38,7 +38,7 @@ public class RtspWebsocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) {
         WebsocketConnection websocketConnection = this.connectionMap.get(session.getId());
         this.rtspManager.handleMessage(websocketConnection, message);
     }
