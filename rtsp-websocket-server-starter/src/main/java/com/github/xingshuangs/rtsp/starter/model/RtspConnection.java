@@ -6,6 +6,7 @@ import com.github.xingshuangs.iot.protocol.rtsp.service.RtspClient;
 import com.github.xingshuangs.iot.protocol.rtsp.service.RtspFMp4Proxy;
 
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,11 @@ public class RtspConnection {
      * rtsp-fmp4转换的代理器
      */
     private RtspFMp4Proxy rtspFMp4Proxy;
+
+    /**
+     * mp4的视频头
+     */
+    private ByteBuffer mp4Header;
 
     /**
      * 视频编码格式
@@ -100,6 +106,14 @@ public class RtspConnection {
         this.rtspFMp4Proxy = rtspFMp4Proxy;
     }
 
+    public ByteBuffer getMp4Header() {
+        return mp4Header;
+    }
+
+    public void setMp4Header(ByteBuffer mp4Header) {
+        this.mp4Header = mp4Header;
+    }
+
     public String getCodec() {
         return codec;
     }
@@ -151,6 +165,12 @@ public class RtspConnection {
     public void removeAllWebsocketConnection() {
         synchronized (this.objLock) {
             this.connections.clear();
+        }
+    }
+
+    public int getWebsocketConnectionCount() {
+        synchronized (this.objLock) {
+            return this.connections.size();
         }
     }
 }

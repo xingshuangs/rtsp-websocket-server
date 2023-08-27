@@ -23,12 +23,32 @@ Camera ==> JAVA Server(Proxy) ==> HTML5 Page.
 
 ## 使用指南
 
-1. 启动指令：``java -jar rtsp-websocket-server-1.0-SNAPSHOT.jar``或 IDEA 启动
+### rtsp-websocket-server-sample(rtsp地址模式)
+
+1. jar包启动 或 IDEA启动
 2. 登录访问地址：http://127.0.0.1:8088
 3. 输入正确的摄像头RTSP地址
 4. 点击页面上的打开按钮
 
 ![rtsp-websocket.png](https://i.postimg.cc/vBZzrGQB/rtsp-websocket.png)
+
+### rtsp-websocket-server-starter(订阅模式)
+
+现在配置文件中配置RTSP的访问地址
+
+```text
+rtsp:
+  addresses:
+    - name: address1
+      url: rtsp://admin:123456@192.168.3.251:554/h264/ch1/main/av_stream
+    - name: address2
+      url: rtsp://admin:123456@192.168.3.250:554/h264/ch1/main/av_stream
+```
+
+1. jar包启动 或 IDEA启动
+2. 登录访问地址：http://127.0.0.1:8089
+3. 点击websocket的连接
+4. 选择对应的视频通道，点击订阅
 
 ## 联系方式
 

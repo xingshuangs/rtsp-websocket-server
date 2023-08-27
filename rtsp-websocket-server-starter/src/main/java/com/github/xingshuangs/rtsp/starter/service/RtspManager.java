@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.TextMessage;
 
-import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
@@ -89,8 +88,8 @@ public class RtspManager {
             });
             switch (rtspMessage.getType()) {
                 case SUBSCRIBE:
-                    log.info("订阅视频通道名称：{}", rtspMessage.getContent());
-//                    this.handleSubscribe(websocketConnection, rtspMessage);
+
+                    this.handleSubscribe(websocketConnection, rtspMessage);
                     break;
                 case QUERY:
                     this.handleQuery(websocketConnection, rtspMessage);
@@ -101,9 +100,16 @@ public class RtspManager {
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            this.sendTextMessage(websocketConnection, RtspMessage.createError("不是标准的视频交互的标准数据格式"));
         }
     }
 
+    /**
+     * 订阅事件处理
+     *
+     * @param websocketConnection websocket连接
+     * @param rtspMessage         rtsp消息
+     */
     private void handleSubscribe(WebsocketConnection websocketConnection, RtspMessage<String> rtspMessage) {
         String srcChannelName = rtspMessage.getContent();
         // 更新下订阅视频通道的信息
@@ -111,8 +117,9 @@ public class RtspManager {
         websocketConnection.setSubscribeChannelName(srcChannelName);
 
         // 1. 判定视频通道名称有没有，若没有返回错误消息
-        boolean existSubscribeName = this.rtspAddresses.stream().allMatch(x -> x.getName().equals(srcChannelName));
+        boolean existSubscribeName = this.rtspAddresses.stream().anyMatch(x -> x.getName().equals(srcChannelName));
         if (!existSubscribeName) {
+            log.error("websocket[{}]，没有该视频通道名称[{}]，无法订阅", websocketConnection.getSession().getId(), srcChannelName);
             this.sendTextMessage(websocketConnection, RtspMessage.createError("不存在该视频通道名称：" + srcChannelName));
             return;
         }
@@ -121,28 +128,35 @@ public class RtspManager {
         String channelName = this.getSubscribeChannelName(websocketConnection);
         if (channelName != null && channelName.equals(srcChannelName)) {
             // 已经订阅过，且同名，直接返回，无需重复订阅
+            log.info("websocket[{}]，已订阅过该视频通道[{}]，无需重复订阅", websocketConnection.getSession().getId(), srcChannelName);
             this.sendTextMessage(websocketConnection, RtspMessage.createError("已经订阅该通道，无需重复订阅"));
             return;
         } else if (channelName != null) {
             // 已经订阅过，但不同名，关闭之前的视频通道，保证一个客户端同时只能订阅一个通道
+            log.info("websocket[{}]，已订阅过一条视频通道，先关闭原来的视频通道[{}]，然后订阅新视频通道[{}]", websocketConnection.getSession().getId(), channelName, srcChannelName);
             this.remove(websocketConnection);
         }
 
         // 3. connectionMap有没有该通道名称，有则添加websocket的连接，没有则重新创建新代理连接
         RtspConnection rtspConnection = this.connectionMap.get(srcChannelName);
         if (rtspConnection != null) {
-            // 已有rtsp连接，第一步需要立即返回codec，第二步需要接收视频流
+            // 已有rtsp连接，第一步需要立即返回codec，第二步需要接收视频头，第三步需要接收视频流内容
+            log.info("websocket[{}]，已构建了视频通道[{}]，直接发送codec和mp4视频头", websocketConnection.getSession().getId(), srcChannelName);
             RtspMessage<String> codecMessage = RtspMessage.createSubscribe(rtspConnection.getCodec());
             this.sendTextMessage(websocketConnection, codecMessage);
+            this.sendBinaryMessage(websocketConnection, rtspConnection.getMp4Header());
             rtspConnection.addWebsocketConnection(websocketConnection);
+            this.printCurrentChannelInfo();
             return;
         }
 
         // 4. 开始订阅新视频通道
+        log.info("websocket[{}]，订阅视频通道名称：{}",websocketConnection.getSession().getId(), rtspMessage.getContent());
         RtspConnection newRtspConnection = this.openRtspFmp4Proxy(websocketConnection, srcChannelName);
         if (newRtspConnection != null) {
             this.connectionMap.put(srcChannelName, newRtspConnection);
         }
+        this.printCurrentChannelInfo();
     }
 
     /**
@@ -271,6 +285,9 @@ public class RtspManager {
     private void fmp4DataHandle(RtspConnection rtspConnection, byte[] fmp4Data) {
         ByteBuffer wrap = ByteBuffer.wrap(fmp4Data);
         rtspConnection.foreachConnections(x -> this.sendBinaryMessage(x, wrap));
+        if (rtspConnection.getMp4Header() == null) {
+            rtspConnection.setMp4Header(wrap);
+        }
     }
 
     /**
@@ -293,16 +310,20 @@ public class RtspManager {
      */
     private void destroyHandle(String channelName) {
         RtspConnection rtspConnection = this.connectionMap.get(channelName);
-        rtspConnection.foreachConnections(x -> {
-            try {
-                if (x.getSession().isOpen()) {
-                    x.getSession().close();
-                }
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
-        });
         rtspConnection.removeAllWebsocketConnection();
         this.connectionMap.remove(channelName);
+    }
+
+    /**
+     * 打印当前通道信息
+     */
+    private void printCurrentChannelInfo() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("当前构建的视频通道数[%d]", this.connectionMap.size()));
+
+        for (Map.Entry<String, RtspConnection> entry : connectionMap.entrySet()) {
+            sb.append(String.format("，视频通道名称[%s]被订阅的数量[%d]", entry.getKey(), entry.getValue().getWebsocketConnectionCount()));
+        }
+        log.info(sb.toString());
     }
 }

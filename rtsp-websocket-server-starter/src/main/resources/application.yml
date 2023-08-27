@@ -14,4 +14,4 @@ rtsp:
     - name: address1
       url: rtsp://admin:hb123456@192.168.3.251:554/h264/ch1/main/av_stream
     - name: address2
-      url: rtsp://admin:kilox1234@192.168.3.142:554/h264/ch1/main/av_stream
+      url: rtsp://admin:hb123456@192.168.3.250:554/h264/ch1/main/av_stream

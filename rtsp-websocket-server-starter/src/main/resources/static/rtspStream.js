@@ -5,11 +5,21 @@ class RtspStream {
         this.videoId = videoId;
         this.queue = [];
         this.canFeed = false;
-        this.lastTime = new Date();
     }
 
     send(data) {
         this.websocket.send(data);
+    }
+
+    subscribe(value) {
+        // 重置参数
+        this.canFeed = false;
+        this.queue = [];
+        // 构建订阅参数，json的形式交互
+        const params = {};
+        params.type = "SUBSCRIBE";
+        params.content = value;
+        this.websocket.send(JSON.stringify(params))
     }
 
     onopen(evt) {
@@ -23,11 +33,13 @@ class RtspStream {
 
     onMessage(evt) {
         if (typeof (evt.data) == "string") {
-            console.log(evt.data);
-            // this.init(evt.data)
+            let data = JSON.parse(evt.data);
+            if (data.type === "SUBSCRIBE") this.init(data.content);
+            else if (data.type === "QUERY") console.log(data.content);
+            else if (data.type === "ERROR") console.error(data.content);
+            else console.log(data.content);
         } else {
             const data = new Uint8Array(evt.data);
-            // console.log(data)
             this.queue.push(data);
             if (this.canFeed) this.feedNext();
         }
@@ -102,12 +114,6 @@ class RtspStream {
         if (!this.queue || !this.queue.length) return
         if (!this.sourceBuffer || this.sourceBuffer.updating) return;
 
-        // const now = new Date();
-        // if (now.getTime() - this.lastTime.getTime() > 120 * 1000) {
-        //     console.log("喂数据进行中", now, this.queue.length, this.sourceBuffer.buffered.end(this.sourceBuffer.buffered.length - 1));
-        //     this.lastTime = now;
-        // }
-
         this.canFeed = false;
         try {
             const data = this.queue.shift();
@@ -130,7 +136,6 @@ class RtspStream {
         // 解决延迟并防止画面卡主
         if (Math.abs(end - current) >= 1.8) {
             this.mediaPlayer.currentTime = end - 0.01;
-            // console.log("画面存在延迟", this.sourceBuffer.buffered.length, current, end);
         }
     }
 
@@ -149,10 +154,8 @@ class RtspStream {
 
         if (Math.abs(firstStart - lastEnd) > 47000) {
             this.sourceBuffer.remove(firstEnd + 10, lastEnd);
-            // console.log("时间戳存在溢出", length, firstStart, firstEnd, currentTime, lastStart, lastEnd);
         } else if (currentTime - firstStart > 120 && lastEnd > currentTime) {
             this.sourceBuffer.remove(firstStart, lastEnd - 10)
-            // console.log("正常移除缓存数据", length, firstStart, firstEnd, currentTime, lastStart, lastEnd);
         }
     }
 
