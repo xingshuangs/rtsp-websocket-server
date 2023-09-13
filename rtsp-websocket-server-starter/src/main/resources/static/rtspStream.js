@@ -53,14 +53,26 @@ class RtspStream {
         this.channelMap.delete(number)
     }
 
+    /**
+     * 打开事件
+     * @param evt 数据
+     */
     onopen(evt) {
         console.log("ws连接成功", this.wsUrl)
     }
 
+    /**
+     * 关闭事件
+     * @param evt 数据
+     */
     onClose(evt) {
         console.log("ws连接关闭", this.wsUrl)
     }
 
+    /**
+     * 接收消息事件
+     * @param evt 数据
+     */
     onMessage(evt) {
         if (typeof (evt.data) == "string") {
             let data = JSON.parse(evt.data);
@@ -81,10 +93,17 @@ class RtspStream {
         }
     }
 
+    /**
+     * 错误
+     * @param evt 数据
+     */
     onError(evt) {
         console.log("ws连接错误")
     }
 
+    /**
+     * 打开
+     */
     open() {
         this.close();
 
@@ -96,14 +115,11 @@ class RtspStream {
         this.websocket.onerror = this.onError.bind(this);
     }
 
+    /**
+     * 关闭
+     */
     close() {
         if (this.websocket) this.websocket.close();
-    }
-
-    reset() {
-        this.close();
-        this.open();
-        console.log("触发websocket进行重连");
     }
 }
 

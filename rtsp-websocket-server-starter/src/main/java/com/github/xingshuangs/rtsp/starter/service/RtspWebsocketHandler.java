@@ -26,14 +26,8 @@ public class RtspWebsocketHandler extends TextWebSocketHandler {
 
     private final RtspManager rtspManager;
 
-    /**
-     * json转换对象
-     */
-    private final ObjectMapper objectMapper;
-
-    public RtspWebsocketHandler(RtspManager rtspManager, ObjectMapper objectMapper) {
+    public RtspWebsocketHandler(RtspManager rtspManager) {
         this.rtspManager = rtspManager;
-        this.objectMapper = objectMapper;
     }
 
     @Override

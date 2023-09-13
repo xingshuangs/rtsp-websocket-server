@@ -129,30 +129,56 @@ public class RtspConnection {
         this.startTime = startTime;
     }
 
+    /**
+     * 是否有websocket连接
+     *
+     * @return true：有，false：没有
+     */
     public boolean hasWebsocketConnection() {
         synchronized (this.objLock) {
             return !this.connections.isEmpty();
         }
     }
 
+    /**
+     * 添加websocket连接
+     *
+     * @param connection websocket连接
+     */
     public void addWebsocketConnection(WebsocketConnection connection) {
         synchronized (this.objLock) {
             this.connections.add(connection);
         }
     }
 
+    /**
+     * 移除websocket连接
+     *
+     * @param connection websocket连接
+     */
     public void removeWebsocketConnection(WebsocketConnection connection) {
         synchronized (this.objLock) {
             this.connections.remove(connection);
         }
     }
 
+    /**
+     * 是否包含指定websocket连接
+     *
+     * @param connection websocket连接
+     * @return true：包含，false：不包含
+     */
     public boolean containWebsocketConnection(WebsocketConnection connection) {
         synchronized (this.objLock) {
             return this.connections.stream().anyMatch(x -> x.getSession().getId().equals(connection.getSession().getId()));
         }
     }
 
+    /**
+     * 遍历连接执行动作
+     *
+     * @param consumer 动作
+     */
     public void foreachConnections(Consumer<WebsocketConnection> consumer) {
         synchronized (this.objLock) {
             for (WebsocketConnection connection : this.connections) {
@@ -161,12 +187,20 @@ public class RtspConnection {
         }
     }
 
+    /**
+     * 移除所有的websocket连接
+     */
     public void removeAllWebsocketConnection() {
         synchronized (this.objLock) {
             this.connections.clear();
         }
     }
 
+    /**
+     * 获取websocket连接数量
+     *
+     * @return 数量
+     */
     public int getWebsocketConnectionCount() {
         synchronized (this.objLock) {
             return this.connections.size();

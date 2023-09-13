@@ -373,6 +373,7 @@ public class RtspManager {
                 this.sendTextMessage(x, codecMessage);
             }
         });
+        // 移除websocket关联的视频通道，移除rtsp关联的websocket
         rtspConnection.foreachConnections(WebsocketConnection::removeAllChannelNumbers);
         rtspConnection.removeAllWebsocketConnection();
         this.rtspConnectionMap.remove(channelNumber);

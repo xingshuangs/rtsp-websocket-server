@@ -17,7 +17,7 @@ public class RtspAddress {
     private Integer number;
 
     /**
-     * 路径
+     * 视频地址路由
      */
     private String url;
 }
