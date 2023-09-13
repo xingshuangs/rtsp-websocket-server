@@ -19,26 +19,34 @@
     视频通道选择：
     <select id="channelNameSelect" class="b_select" style="width: 100px">
         <option value="">请选择</option>
-        <option th:each="item:${channelNames}" th:value="${item}" th:text="${item}">
+        <option th:each="item:${channelNumbers}" th:value="${item}" th:text="${item}">
         </option>
     </select>
-    <button id="btnSubscribe" type="button" onclick="subscribe()" disabled>订阅</button>
+    <button type="button" onclick="subscribe()">订阅</button>
+    <button type="button" onclick="unsubscribe()">取消订阅</button>
 </div>
-<!--<video id="testVideo" autoplay muted style="height: 70vh; width: 80vw"></video>-->
-<video id="testVideo" autoplay muted style="height: 70vh; width: 80vw"></video>
+<video id="testVideo" autoplay muted style="height: 35vh; width: 40vw"></video>
+<div>
+    视频通道选择：
+    <select id="channelNameSelect1" class="b_select" style="width: 100px">
+        <option value="">请选择</option>
+        <option th:each="item:${channelNumbers}" th:value="${item}" th:text="${item}">
+        </option>
+    </select>
+    <button type="button" onclick="subscribe1()">订阅</button>
+    <button type="button" onclick="unsubscribe1()">取消订阅</button>
+</div>
+<video id="testVideo1" autoplay muted style="height: 35vh; width: 40vw"></video>
 
 
 <script>
     let rtsp;
 
     function connect() {
-        if (rtsp) rtsp.close()
+        disconnect();
         const wsUrl = document.getElementById("wsUrlInput").value;
-        const videoId = "testVideo"
-        rtsp = new RtspStream(wsUrl, videoId)
-        rtsp.open()
-        document.getElementById("btnSubscribe").disabled = false;
-        console.log("打开", wsUrl)
+        rtsp = new RtspStream(wsUrl);
+        rtsp.open();
     }
 
     function disconnect() {
@@ -46,8 +54,6 @@
             rtsp.close();
             rtsp = null;
         }
-        document.getElementById("btnSubscribe").disabled = true;
-        console.log("关闭")
     }
 
     function subscribe() {
@@ -61,8 +67,49 @@
             return;
         }
 
-        rtsp.subscribe(value);
-        console.log("订阅", value)
+        rtsp.subscribe(Number(value), "testVideo");
+    }
+
+    function unsubscribe() {
+        if (!rtsp) {
+            alert("请先连接websocket");
+            return;
+        }
+        const value = document.getElementById("channelNameSelect").value;
+        if (value === "") {
+            alert("请先选择通道");
+            return;
+        }
+
+        rtsp.unsubscribe(Number(value));
+    }
+
+    function subscribe1() {
+        if (!rtsp) {
+            alert("请先连接websocket");
+            return;
+        }
+        const value = document.getElementById("channelNameSelect1").value;
+        if (value === "") {
+            alert("请先选择通道");
+            return;
+        }
+
+        rtsp.subscribe(Number(value), "testVideo1");
+    }
+
+    function unsubscribe1() {
+        if (!rtsp) {
+            alert("请先连接websocket");
+            return;
+        }
+        const value = document.getElementById("channelNameSelect1").value;
+        if (value === "") {
+            alert("请先选择通道");
+            return;
+        }
+
+        rtsp.unsubscribe(Number(value));
     }
 </script>
 

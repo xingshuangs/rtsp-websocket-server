@@ -24,8 +24,8 @@ public class PageController {
 
     @RequestMapping("")
     public String client(Model map) {
-        List<String> channelNames = this.rtspProperties.getAddresses().stream().map(RtspAddress::getName).collect(Collectors.toList());
-        map.addAttribute("channelNames", channelNames);
+        List<Integer> channelNumbers = this.rtspProperties.getAddresses().stream().map(RtspAddress::getNumber).collect(Collectors.toList());
+        map.addAttribute("channelNumbers", channelNumbers);
         return "client";
     }
 }

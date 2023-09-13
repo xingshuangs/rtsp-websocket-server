@@ -13,6 +13,11 @@ public enum ERtspMessageType {
     SUBSCRIBE,
 
     /**
+     * 取消订阅
+     */
+    UNSUBSCRIBE,
+
+    /**
      * 查询
      */
     QUERY,

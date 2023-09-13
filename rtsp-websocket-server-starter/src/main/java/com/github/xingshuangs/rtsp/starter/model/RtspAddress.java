@@ -12,9 +12,9 @@ import lombok.Data;
 public class RtspAddress {
 
     /**
-     * 名称
+     * 视频通道编号
      */
-    private String name;
+    private Integer number;
 
     /**
      * 路径

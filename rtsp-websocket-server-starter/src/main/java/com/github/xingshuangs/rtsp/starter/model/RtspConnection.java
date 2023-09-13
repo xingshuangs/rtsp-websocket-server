@@ -6,10 +6,9 @@ import com.github.xingshuangs.iot.protocol.rtsp.service.RtspClient;
 import com.github.xingshuangs.iot.protocol.rtsp.service.RtspFMp4Proxy;
 
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -49,7 +48,7 @@ public class RtspConnection {
     /**
      * mp4的视频头
      */
-    private ByteBuffer mp4Header;
+    private byte[] mp4Header;
 
     /**
      * 视频编码格式
@@ -64,7 +63,7 @@ public class RtspConnection {
     /**
      * 对应的session连接
      */
-    private final List<WebsocketConnection> connections = new ArrayList<>();
+    private final Set<WebsocketConnection> connections = new HashSet<>();
 
     public URI getRawUri() {
         return rawUri;
@@ -106,11 +105,11 @@ public class RtspConnection {
         this.rtspFMp4Proxy = rtspFMp4Proxy;
     }
 
-    public ByteBuffer getMp4Header() {
+    public byte[] getMp4Header() {
         return mp4Header;
     }
 
-    public void setMp4Header(ByteBuffer mp4Header) {
+    public void setMp4Header(byte[] mp4Header) {
         this.mp4Header = mp4Header;
     }
 

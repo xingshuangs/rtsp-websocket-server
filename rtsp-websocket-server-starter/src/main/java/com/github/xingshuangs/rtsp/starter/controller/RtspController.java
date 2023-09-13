@@ -24,9 +24,9 @@ public class RtspController {
         this.rtspProperties = rtspProperties;
     }
 
-    @GetMapping("/channel/name")
-    public ResponseEntity<List<String>> getChannelName() {
-        List<String> names = this.rtspProperties.getAddresses().stream().map(RtspAddress::getName).collect(Collectors.toList());
-        return ResponseEntity.ok(names);
+    @GetMapping("/channel/number")
+    public ResponseEntity<List<Integer>> getChannelNumber() {
+        List<Integer> numbers = this.rtspProperties.getAddresses().stream().map(RtspAddress::getNumber).collect(Collectors.toList());
+        return ResponseEntity.ok(numbers);
     }
 }

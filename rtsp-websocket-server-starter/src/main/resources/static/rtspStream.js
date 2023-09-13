@@ -1,47 +1,83 @@
 class RtspStream {
 
-    constructor(wsUrl, videoId) {
+    constructor(wsUrl) {
         this.wsUrl = wsUrl;
-        this.videoId = videoId;
-        this.queue = [];
-        this.canFeed = false;
+        this.channelMap = new Map();
     }
 
     send(data) {
         this.websocket.send(data);
     }
 
-    subscribe(value) {
-        // 重置参数
-        this.canFeed = false;
-        this.queue = [];
+    /**
+     * 触发订阅
+     * @param number 通道编号
+     * @param videoId video标签Id
+     */
+    subscribe(number, videoId) {
+        console.debug(`subscribe channel[${number}]，videoId[${videoId}]`)
         // 构建订阅参数，json的形式交互
         const params = {};
         params.type = "SUBSCRIBE";
-        params.content = value;
+        params.number = number;
+        params.content = "";
+        const channelMedia = new ChannelMedia(number, videoId);
+        channelMedia.onReset = (number, videoId) => this.resubscribe(number, videoId);
+        this.channelMap.set(number, channelMedia)
         this.websocket.send(JSON.stringify(params))
     }
 
+    /**
+     * 重新订阅
+     * @param number 视频通道编号
+     * @param videoId video标签Id
+     */
+    resubscribe(number, videoId) {
+        console.debug(`resubscribe channel[${number}]，videoId[${videoId}]`)
+        this.unsubscribe(number);
+        this.subscribe(number, videoId);
+    }
+
+    /**
+     * 取消订阅
+     * @param number 视频通道编号
+     */
+    unsubscribe(number) {
+        console.debug(`取消订阅通道[${number}]`)
+        // 构建订阅参数，json的形式交互
+        const params = {};
+        params.type = "UNSUBSCRIBE";
+        params.number = number;
+        params.content = "";
+        this.websocket.send(JSON.stringify(params))
+        this.channelMap.delete(number)
+    }
+
     onopen(evt) {
-        console.log("ws连接成功")
-        // this.websocket.send(this.rtspUrl)
+        console.log("ws连接成功", this.wsUrl)
     }
 
     onClose(evt) {
-        console.log("ws连接关闭")
+        console.log("ws连接关闭", this.wsUrl)
     }
 
     onMessage(evt) {
         if (typeof (evt.data) == "string") {
             let data = JSON.parse(evt.data);
-            if (data.type === "SUBSCRIBE") this.init(data.content);
-            else if (data.type === "QUERY") console.log(data.content);
-            else if (data.type === "ERROR") console.error(data.content);
+            if (data.type === "SUBSCRIBE") this.channelMap.get(data.number).init(data.content);
+            else if (data.type === "QUERY") console.log(`channel[${data.number}]: ${data.content}`);
+            else if (data.type === "ERROR") console.error(`channel[${data.number}]: ${data.content}`);
             else console.log(data.content);
         } else {
             const data = new Uint8Array(evt.data);
-            this.queue.push(data);
-            if (this.canFeed) this.feedNext();
+            // 解析通道编号
+            const numberSrc = data.slice(0, 4);
+            const view = new DataView(numberSrc.buffer);
+            const number = view.getUint32(0);
+            // 向指定通道编号添加数据
+            const videoData = data.slice(4);
+            // console.log("通道编号：", number, videoData.length)
+            this.channelMap.get(number).pushData(videoData);
         }
     }
 
@@ -50,7 +86,7 @@ class RtspStream {
     }
 
     open() {
-        if (this.websocket) this.websocket.close();
+        this.close();
 
         this.websocket = new WebSocket(this.wsUrl);
         this.websocket.binaryType = "arraybuffer";
@@ -58,21 +94,36 @@ class RtspStream {
         this.websocket.onmessage = this.onMessage.bind(this);
         this.websocket.onclose = this.onClose.bind(this);
         this.websocket.onerror = this.onError.bind(this);
-        this.queue = [];
-        this.canFeed = false;
     }
 
     close() {
         if (this.websocket) this.websocket.close();
     }
 
+    reset() {
+        this.close();
+        this.open();
+        console.log("触发websocket进行重连");
+    }
+}
+
+class ChannelMedia {
+
+    constructor(number, videoId) {
+        this.number = number;
+        this.videoId = videoId;
+        this.queue = [];
+        this.canFeed = false;
+        this.onReset = null;
+    }
+
     /**
      * 初始化
-     * @param codecStr 编解码信息
+     * @param codecStr 视频编码
      */
     init(codecStr) {
         this.codec = 'video/mp4; codecs=\"' + codecStr + '\"';
-        console.log("call play:", this.codec);
+        console.log(`channel[${this.number}] call play [${this.codec}]`);
         if (MediaSource.isTypeSupported(this.codec)) {
             this.mediaSource = new MediaSource;
             this.mediaSource.addEventListener('sourceopen', this.onMediaSourceOpen.bind(this));
@@ -107,6 +158,15 @@ class RtspStream {
     }
 
     /**
+     * 压入数据
+     * @param data 数据
+     */
+    pushData(data) {
+        this.queue.push(data);
+        if (this.canFeed) this.feedNext();
+    }
+
+    /**
      * 喂数据
      * append的时候遇到The HTMLMediaElement.error attribute is not null就是数据时间戳有问题
      */
@@ -121,7 +181,9 @@ class RtspStream {
             this.canFeed = true;
         } catch (e) {
             console.log(e);
-            this.reset();
+            this.canFeed = false;
+            this.queue = [];
+            this.onReset(this.number, this.videoId);
         }
     }
 
@@ -157,11 +219,5 @@ class RtspStream {
         } else if (currentTime - firstStart > 120 && lastEnd > currentTime) {
             this.sourceBuffer.remove(firstStart, lastEnd - 10)
         }
-    }
-
-    reset() {
-        this.close();
-        this.open();
-        console.log("触发websocket进行重连");
     }
 }
