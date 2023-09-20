@@ -34,14 +34,14 @@ Camera ==> JAVA Server(Proxy) ==> HTML5 Page.
 
 ### rtsp-websocket-server-starter(订阅模式)
 
-现在配置文件中配置RTSP的访问地址
+先在配置文件中配置RTSP的访问地址
 
 ```text
 rtsp:
   addresses:
-    - name: address1
+    - number: 1001
       url: rtsp://admin:123456@192.168.3.251:554/h264/ch1/main/av_stream
-    - name: address2
+    - number: 1002
       url: rtsp://admin:123456@192.168.3.250:554/h264/ch1/main/av_stream
 ```
 
@@ -49,6 +49,8 @@ rtsp:
 2. 登录访问地址：http://127.0.0.1:8089
 3. 点击websocket的连接
 4. 选择对应的视频通道，点击订阅
+
+![rtsp-websocket-starter.png](https://i.postimg.cc/Yqk1SF4v/rtsp-websocket-starter.jpg)
 
 ## 联系方式
 
