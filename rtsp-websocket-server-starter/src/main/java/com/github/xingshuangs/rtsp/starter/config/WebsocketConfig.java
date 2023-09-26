@@ -24,6 +24,7 @@ public class WebsocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
-        webSocketHandlerRegistry.addHandler(rtspWebsocketHandler, "/rtsp");
+        webSocketHandlerRegistry.addHandler(rtspWebsocketHandler, "/rtsp")
+                .setAllowedOrigins("*");
     }
 }
