@@ -333,9 +333,6 @@ public class RtspManager {
                 this.sendBinaryMessage(x, channelNumber, fmp4Data);
             }
         });
-        if (rtspConnection.getMp4Header() == null) {
-            rtspConnection.setMp4Header(fmp4Data);
-        }
     }
 
     /**
@@ -347,7 +344,6 @@ public class RtspManager {
      */
     private void codecHandle(RtspConnection rtspConnection, Integer channelNumber, String codec) {
         rtspConnection.setStartTime(LocalDateTime.now());
-        rtspConnection.setCodec(codec);
         rtspConnection.foreachConnections(x -> {
             if (x.containChannelNumber(channelNumber)) {
                 RtspMessage<String> codecMessage = RtspMessage.createSubscribe(channelNumber, codec);

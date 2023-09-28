@@ -46,16 +46,6 @@ public class RtspConnection {
     private RtspFMp4Proxy rtspFMp4Proxy;
 
     /**
-     * mp4的视频头
-     */
-    private byte[] mp4Header;
-
-    /**
-     * 视频编码格式
-     */
-    private String codec;
-
-    /**
      * 开始时间
      */
     private LocalDateTime startTime;
@@ -106,19 +96,11 @@ public class RtspConnection {
     }
 
     public byte[] getMp4Header() {
-        return mp4Header;
-    }
-
-    public void setMp4Header(byte[] mp4Header) {
-        this.mp4Header = mp4Header;
+        return this.rtspFMp4Proxy.getMp4Header().toByteArray();
     }
 
     public String getCodec() {
-        return codec;
-    }
-
-    public void setCodec(String codec) {
-        this.codec = codec;
+        return this.rtspFMp4Proxy.getMp4TrackInfo().getCodec();
     }
 
     public LocalDateTime getStartTime() {
