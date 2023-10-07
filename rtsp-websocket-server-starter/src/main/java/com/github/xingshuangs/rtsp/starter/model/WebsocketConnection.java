@@ -1,10 +1,9 @@
 package com.github.xingshuangs.rtsp.starter.model;
 
-
-import com.sun.deploy.util.StringUtils;
 import lombok.Data;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
