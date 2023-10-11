@@ -15,29 +15,60 @@
     <button type="button" onclick="connect()">连接</button>
     <button type="button" onclick="disconnect()">断开</button>
 </div>
-<div>
-    视频通道选择：
-    <select id="channelNameSelect" class="b_select" style="width: 100px">
-        <option value="">请选择</option>
-        <option th:each="item:${channelNumbers}" th:value="${item}" th:text="${item}">
-        </option>
-    </select>
-    <button type="button" onclick="subscribe()">订阅</button>
-    <button type="button" onclick="unsubscribe()">取消订阅</button>
+<div style="display: flex;justify-content: space-around;flex-wrap: wrap;">
+    <div style="width: 49vw">
+        <div>
+            视频通道选择：
+            <select id="channelNameSelect0">
+                <option value="">请选择</option>
+                <option th:each="item:${channelNumbers}" th:value="${item}" th:text="${item}">
+                </option>
+            </select>
+            <button type="button" onclick="subscribe(0)">订阅</button>
+            <button type="button" onclick="unsubscribe(0)">取消订阅</button>
+        </div>
+        <video id="testVideo0" autoplay muted style="height: 35vh;"></video>
+    </div>
+    <div style="width: 49vw">
+        <div>
+            视频通道选择：
+            <select id="channelNameSelect1">
+                <option value="">请选择</option>
+                <option th:each="item:${channelNumbers}" th:value="${item}" th:text="${item}">
+                </option>
+            </select>
+            <button type="button" onclick="subscribe(1)">订阅</button>
+            <button type="button" onclick="unsubscribe(1)">取消订阅</button>
+        </div>
+        <video id="testVideo1" autoplay muted style="height: 35vh;"></video>
+    </div>
+    <div style="width: 49vw">
+        <div>
+            视频通道选择：
+            <select id="channelNameSelect2">
+                <option value="">请选择</option>
+                <option th:each="item:${channelNumbers}" th:value="${item}" th:text="${item}">
+                </option>
+            </select>
+            <button type="button" onclick="subscribe(2)">订阅</button>
+            <button type="button" onclick="unsubscribe(2)">取消订阅</button>
+        </div>
+        <video id="testVideo2" autoplay muted style="height: 35vh;"></video>
+    </div>
+    <div style="width: 49vw">
+        <div>
+            视频通道选择：
+            <select id="channelNameSelect3">
+                <option value="">请选择</option>
+                <option th:each="item:${channelNumbers}" th:value="${item}" th:text="${item}">
+                </option>
+            </select>
+            <button type="button" onclick="subscribe(3)">订阅</button>
+            <button type="button" onclick="unsubscribe(3)">取消订阅</button>
+        </div>
+        <video id="testVideo3" autoplay muted style="height: 35vh;"></video>
+    </div>
 </div>
-<video id="testVideo" autoplay muted style="height: 35vh; width: 40vw"></video>
-<div>
-    视频通道选择：
-    <select id="channelNameSelect1" class="b_select" style="width: 100px">
-        <option value="">请选择</option>
-        <option th:each="item:${channelNumbers}" th:value="${item}" th:text="${item}">
-        </option>
-    </select>
-    <button type="button" onclick="subscribe1()">订阅</button>
-    <button type="button" onclick="unsubscribe1()">取消订阅</button>
-</div>
-<video id="testVideo1" autoplay muted style="height: 35vh; width: 40vw"></video>
-
 
 <script>
     let rtsp;
@@ -56,51 +87,28 @@
         }
     }
 
-    function subscribe() {
+    function subscribe(index) {
         if (!rtsp) {
             alert("请先连接websocket");
             return;
         }
-        const value = document.getElementById("channelNameSelect").value;
+        const selectId = "channelNameSelect" + index;
+        const videoId = "testVideo" + index;
+        const value = document.getElementById(selectId).value;
         if (value === "") {
             alert("请先选择通道");
             return;
         }
-        rtsp.subscribe(Number(value), "testVideo");
+        rtsp.subscribe(Number(value), videoId);
     }
 
-    function unsubscribe() {
+    function unsubscribe(index) {
         if (!rtsp) {
             alert("请先连接websocket");
             return;
         }
-        const value = document.getElementById("channelNameSelect").value;
-        if (value === "") {
-            alert("请先选择通道");
-            return;
-        }
-        rtsp.unsubscribe(Number(value));
-    }
-
-    function subscribe1() {
-        if (!rtsp) {
-            alert("请先连接websocket");
-            return;
-        }
-        const value = document.getElementById("channelNameSelect1").value;
-        if (value === "") {
-            alert("请先选择通道");
-            return;
-        }
-        rtsp.subscribe(Number(value), "testVideo1");
-    }
-
-    function unsubscribe1() {
-        if (!rtsp) {
-            alert("请先连接websocket");
-            return;
-        }
-        const value = document.getElementById("channelNameSelect1").value;
+        const selectId = "channelNameSelect" + index;
+        const value = document.getElementById(selectId).value;
         if (value === "") {
             alert("请先选择通道");
             return;

@@ -20,3 +20,7 @@ rtsp:
       url: rtsp://admin:hb123456@192.168.3.251:554/h264/ch1/main/av_stream
     - number: 1002
       url: rtsp://admin:hb123456@192.168.3.250:554/h264/ch1/main/av_stream
+    - number: 1003
+      url: rtsp://admin:123456@192.168.3.142:554/h264/ch1/main/av_stream
+    - number: 1004
+      url: rtsp://admin:123456@192.168.3.142:554/h264/ch2/main/av_stream
