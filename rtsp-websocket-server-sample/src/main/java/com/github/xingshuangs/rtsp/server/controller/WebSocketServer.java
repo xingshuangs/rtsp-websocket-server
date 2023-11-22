@@ -96,7 +96,9 @@ public class WebSocketServer {
             this.rtspFMp4Proxy.onFmp4DataHandle(x -> {
                 ByteBuffer wrap = ByteBuffer.wrap(x);
                 try {
-                    session.getBasicRemote().sendBinary(wrap);
+                    if (session.isOpen()) {
+                        session.getBasicRemote().sendBinary(wrap);
+                    }
                 } catch (IOException e) {
                     log.error(e.getMessage(), e);
                 }
