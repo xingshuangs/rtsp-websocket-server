@@ -85,7 +85,9 @@ public class WebSocketServer {
         this.closeRtspFmp4Proxy();
         try {
             URI srcUri = URI.create(message);
-            URI uri = URI.create("rtsp://" + srcUri.getHost() + ":" + srcUri.getPort() + srcUri.getPath());
+            int i = message.indexOf("@");
+            URI uri = i < 0 ? srcUri : URI.create("rtsp://" + message.substring(i + 1));
+
             DigestAuthenticator authenticator = null;
             if (srcUri.getUserInfo() != null) {
                 UsernamePasswordCredential credential = UsernamePasswordCredential.createBy(srcUri.getUserInfo());

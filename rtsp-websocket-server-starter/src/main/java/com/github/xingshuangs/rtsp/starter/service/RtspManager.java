@@ -288,7 +288,9 @@ public class RtspManager {
             RtspConnection rtspConnection = new RtspConnection();
 
             URI srcUri = URI.create(rtspAddress.getUrl());
-            URI uri = URI.create("rtsp://" + srcUri.getHost() + ":" + srcUri.getPort() + srcUri.getPath());
+            int i = rtspAddress.getUrl().indexOf("@");
+            URI uri = i < 0 ? srcUri : URI.create("rtsp://" + rtspAddress.getUrl().substring(i + 1));
+
             DigestAuthenticator authenticator = null;
             UsernamePasswordCredential credential = null;
             if (srcUri.getUserInfo() != null) {
