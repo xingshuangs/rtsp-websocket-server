@@ -6,5 +6,10 @@ spring:
     static-path-pattern: /static/**
 
 logging:
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5level [%15thread] %-50.50(%logger{39}.%method:%-3line) - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5level [%15thread] %-50.50(%logger{39}.%method:%-3line) - %msg%n"
+  file:
+    name: ./logs/rtsp-websocket-server-sample/rtsp-websocket-server-sample.log
   level:
     com.github.xingshuangs: debug
