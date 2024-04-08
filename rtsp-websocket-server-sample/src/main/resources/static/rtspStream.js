@@ -105,11 +105,10 @@ class RtspStream {
         this.sourceBuffer.addEventListener('about', e => console.log(`about `, e));
         this.sourceBuffer.addEventListener('error', e => console.log(`error `, e));
         this.sourceBuffer.addEventListener('updateend', e => {
-            if (this.canFeed) {
-                this.removeBuffer();
-                this.processDelay();
-                this.feedNext();
-            }
+            this.removeBuffer();
+            this.processDelay();
+            this.canFeed = true;
+            this.feedNext();
         });
         this.canFeed = true;
     }
@@ -121,6 +120,7 @@ class RtspStream {
     feedNext() {
         if (!this.queue || !this.queue.length) return
         if (!this.sourceBuffer || this.sourceBuffer.updating) return;
+        if (!this.canFeed) return;
 
         // const now = new Date();
         // if (now.getTime() - this.lastTime.getTime() > 120 * 1000) {
@@ -128,11 +128,10 @@ class RtspStream {
         //     this.lastTime = now;
         // }
 
-        this.canFeed = false;
         try {
             const data = this.queue.shift();
             this.sourceBuffer.appendBuffer(data);
-            this.canFeed = true;
+            this.canFeed = false;
         } catch (e) {
             console.log(e);
             this.reset();

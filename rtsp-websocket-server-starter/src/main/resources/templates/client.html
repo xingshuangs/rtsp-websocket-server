@@ -100,7 +100,7 @@ SOFTWARE.
     function connect() {
         disconnect();
         const wsUrl = document.getElementById("wsUrlInput").value;
-        rtsp = new RtspStream(wsUrl);
+        rtsp = new RtspStream(wsUrl, openCallback);
         rtsp.open();
     }
 
@@ -109,6 +109,10 @@ SOFTWARE.
             rtsp.close();
             rtsp = null;
         }
+    }
+
+    function openCallback() {
+        console.log("websocket连接成功回调响应，主要用于后续自动订阅视频");
     }
 
     function subscribe(index) {

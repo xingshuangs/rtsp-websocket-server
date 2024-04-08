@@ -24,9 +24,10 @@
 
 class RtspStream {
 
-    constructor(wsUrl) {
+    constructor(wsUrl, openCallback) {
         this.wsUrl = wsUrl;
         this.channelMap = new Map();
+        this.openCallback = openCallback;
     }
 
     send(data) {
@@ -39,6 +40,10 @@ class RtspStream {
      * @param videoId video标签Id
      */
     subscribe(number, videoId) {
+        if (this.channelMap.get(number)) {
+            console.warn("can't resubscribe same channel");
+            return;
+        }
         console.debug(`subscribe channel[${number}]，videoId[${videoId}]`)
         // 构建订阅参数，json的形式交互
         const params = {};
@@ -73,8 +78,8 @@ class RtspStream {
         params.type = "UNSUBSCRIBE";
         params.number = number;
         params.content = "";
-        this.websocket.send(JSON.stringify(params))
-        this.channelMap.delete(number)
+        this.websocket.send(JSON.stringify(params));
+        this.channelMap.delete(number);
     }
 
     /**
@@ -82,7 +87,8 @@ class RtspStream {
      * @param evt 数据
      */
     onopen(evt) {
-        console.log("ws连接成功", this.wsUrl)
+        console.log("ws连接成功", this.wsUrl);
+        this.openCallback(evt);
     }
 
     /**
@@ -90,7 +96,7 @@ class RtspStream {
      * @param evt 数据
      */
     onClose(evt) {
-        console.log("ws连接关闭", this.wsUrl)
+        console.log("ws连接关闭", this.wsUrl);
     }
 
     /**
@@ -122,7 +128,7 @@ class RtspStream {
      * @param evt 数据
      */
     onError(evt) {
-        console.log("ws连接错误")
+        console.log("ws连接错误");
     }
 
     /**
@@ -188,11 +194,10 @@ class ChannelMedia {
         this.sourceBuffer.addEventListener('about', e => console.log(`about `, e));
         this.sourceBuffer.addEventListener('error', e => console.log(`error `, e));
         this.sourceBuffer.addEventListener('updateend', e => {
-            if (this.canFeed) {
-                this.removeBuffer();
-                this.processDelay();
-                this.feedNext();
-            }
+            this.removeBuffer();
+            this.processDelay();
+            this.canFeed = true;
+            this.feedNext();
         });
         this.canFeed = true;
     }
@@ -213,15 +218,14 @@ class ChannelMedia {
     feedNext() {
         if (!this.queue || !this.queue.length) return
         if (!this.sourceBuffer || this.sourceBuffer.updating) return;
+        if (!this.canFeed) return;
 
-        this.canFeed = false;
         try {
             const data = this.queue.shift();
             this.sourceBuffer.appendBuffer(data);
-            this.canFeed = true;
+            this.canFeed = false;
         } catch (e) {
             console.log(e);
-            this.canFeed = false;
             this.queue = [];
             this.onReset(this.number, this.videoId);
         }
