@@ -23,7 +23,7 @@ Camera ==> JAVA Server(Proxy) ==> HTML5 Page.
 
 ## 使用指南
 
-### rtsp-websocket-server-sample(rtsp地址模式)
+### 1. rtsp-websocket-server-sample(rtsp地址模式)
 
 1. jar包启动 或 IDEA启动
 2. 登录访问地址：http://127.0.0.1:8088
@@ -32,7 +32,7 @@ Camera ==> JAVA Server(Proxy) ==> HTML5 Page.
 
 ![rtsp-websocket.png](https://i.postimg.cc/vBZzrGQB/rtsp-websocket.png)
 
-### rtsp-websocket-server-starter(订阅模式)
+### 2. rtsp-websocket-server-starter(订阅模式)
 
 先在配置文件中配置RTSP的访问地址
 
