@@ -117,7 +117,7 @@ public class WebSocketServer {
                 UsernamePasswordCredential credential = UsernamePasswordCredential.createBy(srcUri.getUserInfo());
                 authenticator = new DigestAuthenticator(credential);
             }
-            RtspClient client = new RtspClient(uri, authenticator, ERtspTransportProtocol.TCP);
+            RtspClient client = new RtspClient(uri, authenticator, ERtspTransportProtocol.UDP);
             this.rtspFMp4Proxy = new RtspFMp4Proxy(client);
             this.rtspFMp4Proxy.onFmp4DataHandle(x -> {
                 ByteBuffer wrap = ByteBuffer.wrap(x);

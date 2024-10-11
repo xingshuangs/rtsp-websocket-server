@@ -321,7 +321,7 @@ public class RtspManager {
                 credential = UsernamePasswordCredential.createBy(srcUri.getUserInfo());
                 authenticator = new DigestAuthenticator(credential);
             }
-            RtspClient client = new RtspClient(uri, authenticator, ERtspTransportProtocol.TCP);
+            RtspClient client = new RtspClient(uri, authenticator, ERtspTransportProtocol.UDP);
             rtspFMp4Proxy = new RtspFMp4Proxy(client, true);
             // 初始统一更新rtsp连接信息
             rtspConnection.setRawUri(srcUri);
